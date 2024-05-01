@@ -11,7 +11,7 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY . /usr/share/nginx/html
 
 # Expose port 80
-EXPOSE 80
+EXPOSE $PORT
 
 # Start Nginx when the container has provisioned
 CMD ["nginx", "-g", "daemon off;"]
