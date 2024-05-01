@@ -5,7 +5,7 @@ FROM nginx:alpine
 RUN apk add --no-cache gettext
 
 # Copy custom configuration template
-COPY nginx.conf /etc/nginx/templates/nginx.conf
+COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
 # Remove the default Nginx index page
 RUN rm -rf /usr/share/nginx/html/*
