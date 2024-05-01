@@ -19,10 +19,12 @@ var config = {
 var game = new Phaser.Game(config);
 
 function preload () {
-    // Load each dice image
+    // Load dice images and sound
     for (let i = 1; i <= 6; i++) {
-        this.load.image('dice' + i, `dice/dice${i}.jpg`); // Make sure the path matches where you've stored the images
+        this.load.image('dice' + i, `dice/dice${i}.jpg`);
     }
+    this.load.audio('celebration', 'sound/laser.mp3');
+    this.load.audio('sad', 'sound/sad.mp3');  // Ensure you have a sad sound file
 }
 
 
@@ -32,7 +34,7 @@ var cursors;
 
 function setDiceImage(dice, value) {
     dice.setTexture('dice' + value); // Set the texture based on the dice value
-    dice.value = value; // Update the dice value property
+    dice.value = value;
 }
 
 function create () {
@@ -53,6 +55,13 @@ function create () {
     dice.value = diceValue; // Store the value to use later if needed
      
     cursors = this.input.keyboard.createCursorKeys();
+
+    this.celebrationSound = this.sound.add('celebration');
+    this.sadSound = this.sound.add('sad');
+
+    // Score
+    this.score = 0;
+    this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' });    
 }
 
 function update() {
@@ -78,14 +87,36 @@ function update() {
     // Check if dice reaches the slots
     slots.forEach(slot => {
         if (Phaser.Geom.Rectangle.Overlaps(slot.getBounds(), dice.getBounds())) {
-            slot.sum += dice.value; // Use the stored dice value
-            slot.text.setText(`Sum: ${slot.sum}`);
-            dice.x = 50; // Reset position for demonstration purposes
-            dice.y = 300;
-            // Optionally roll a new dice on overlap
-            let newDiceValue = Phaser.Math.Between(1, 6);
-            setDiceImage(dice, newDiceValue);
+            slot.sum += dice.value;  // Assume dice.value is set when the dice sprite is initialized
+            if (slot.sum === 10) {
+                // Play celebration sound, update score, and reset slot
+                this.celebrationSound.play();
+                this.score += 10;  // Increment score
+                this.scoreText.setText('Score: ' + this.score);
+                slot.sum = 0;  // Reset slot sum
+                slot.text.setText('Sum: 0');
+                resetDice();
+            } else if (slot.sum > 10) {
+                // Play sad sound, reset score, and reset slot
+                this.sadSound.play();
+                this.score = 0;  // Reset score
+                this.scoreText.setText('Score: 0');
+                slot.sum = 0;  // Reset slot sum
+                slot.text.setText('Sum: 0');
+                resetDice();
+            } else {
+                // Update slot sum display
+                slot.text.setText('Sum: ' + slot.sum);
+                resetDice();
+            }
         }
     });
 }
 
+function resetDice() {
+    // Optionally roll a new dice on reset
+    let newDiceValue = Phaser.Math.Between(1, 6);
+    setDiceImage(dice, newDiceValue);
+    dice.x = 50;  // Reset position for demonstration purposes
+    dice.y = 300;
+}
